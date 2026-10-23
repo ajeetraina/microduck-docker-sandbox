@@ -4,7 +4,7 @@ This is the long-form version of what the `scripts/` automate. Read it if a scri
 if your `sbx` version behaves differently, or if you just want to run the steps by hand.
 
 > Tested shape, not a guarantee: `sbx` is young and its flags move between releases. If a
-> command errors, run the steps one at a time and adjust — the model below is stable even
+> command errors, run the steps one at a time and adjust - the model below is stable even
 > when the exact flags drift.
 
 ## The model
@@ -26,7 +26,7 @@ sbx login                       # choose "Locked Down" for the air-gapped story 
 docker version                  # host Docker, only needed for the air-gapped export
 ```
 
-## Option A — air-gapped (recommended)
+## Option A - air-gapped (recommended)
 
 The image does **no downloads at runtime**, so once it is loaded the sandbox needs zero
 network. This is the whole point: the delete-capable lab API ends up behind a hypervisor
@@ -55,7 +55,7 @@ sbx ports microduck --publish 63317:63317 --publish 8788:8788
 open http://localhost:63317
 ```
 
-## Option B — networked (simplest)
+## Option B - networked (simplest)
 
 Let the sandbox pull the image itself. Requires allowing Docker Hub through the policy.
 
@@ -73,12 +73,12 @@ open http://localhost:63317
 
 - **Bind address.** `sbx` only forwards services bound to `0.0.0.0`. The inner
   `docker run -p 63317:63317` already publishes on the VM's `0.0.0.0`, so you're fine. Note
-  this is the *opposite* of upstream's `127.0.0.1` compose binding — safe here, because the
+  this is the *opposite* of upstream's `127.0.0.1` compose binding - safe here, because the
   microVM is the isolation boundary.
 - **Port maps are lost on `sbx stop`.** After any stop/reconnect, re-run the `sbx ports`
   command.
 - **`docker info` fails?** The `shell` template on your `sbx` build may not include a
-  daemon. Use a `-docker` variant template (`sbx create --template …`) — see
+  daemon. Use a `-docker` variant template (`sbx create --template …`) - see
   `sbx run --help` and the custom-environments docs.
 - **Memory.** MuJoCo physics + the shipped brains want headroom; `-m 4GB` is a safe floor.
   Bump it if the container is OOM-killed.
@@ -97,10 +97,10 @@ sbx rm microduck                        # delete
 
 ## Security notes
 
-- The hypervisor boundary — not in-VM privilege separation — is the control. Agents/root
+- The hypervisor boundary - not in-VM privilege separation - is the control. Agents/root
   inside the VM is by design.
 - **Workspace is the residual risk.** We mount this repo read-write only to carry
   `microduck.tar` in; nothing writes back. If you prefer, mount it `:ro` and copy the tar
   in another way. After a session, `git diff` and check `.git/hooks/` out of habit.
-- Under **Locked Down** with Option A, the sandbox has no egress at all — the strongest
+- Under **Locked Down** with Option A, the sandbox has no egress at all - the strongest
   posture, and the reason this repo exists.
