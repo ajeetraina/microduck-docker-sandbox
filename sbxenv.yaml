@@ -1,0 +1,41 @@
+# Declarative Docker Sandboxes environment for the Microduck simulator.
+#
+#   sbx env plan ./sbxenv.yaml     # preview, changes nothing
+#   sbx env run  ./sbxenv.yaml     # create (if needed) + attach
+#   sbx env rm   ./sbxenv.yaml     # tear everything down
+#
+# EXPERIMENTAL: `sbx env` is an experimental command; keys may change.
+
+schemaVersion: "1"
+
+name: microduck
+
+# Microduck is a service, not a coding agent, so we use the bare shell
+# sandbox - its template ships a Docker daemon we run the image inside.
+agent: shell
+
+# Mount this repo so microduck.tar (from ./scripts/export-image.sh) and the
+# helper scripts are reachable inside the sandbox.
+workspace: .
+
+# The two ports the simulator serves, forwarded host -> sandbox.
+# (MuJoCo + the shipped brains want headroom: pass -m 4g to `sbx env run`.)
+ports:
+  - host: 63317
+    sandbox: 63317   # 3D viewer (open this)
+  - host: 8788
+    sandbox: 8788    # physics + brains (required)
+
+args:
+  image:
+    default: ajeetraina777/microduck-docker:latest
+    description: Docker image to run inside the sandbox
+
+lifecycle:
+  # Host side: make sure the air-gapped tar exists before the sandbox boots.
+  initialize:
+    - command: test -f microduck.tar || ./scripts/export-image.sh
+  # Once the sandbox exists, load the image into its daemon and start the sim.
+  postCreate:
+    - command: sbx exec microduck docker load -i "${{ env.projectDir }}/microduck.tar"
+    - command: sbx exec -d microduck docker run --rm -p 63317:63317 -p 8788:8788 ${{ env.args.image }}

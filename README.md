@@ -40,6 +40,22 @@ Prefer to just let it pull inside the sandbox instead of air-gapping? See
 [`docs/sandbox-setup.md`](docs/sandbox-setup.md) for the networked variant and the manual,
 step-by-step walkthrough behind these scripts.
 
+### Declarative (`sbxenv.yaml`)
+
+The same environment is also described declaratively in [`sbxenv.yaml`](sbxenv.yaml), so you
+can skip the scripts and let `sbx` manage the whole lifecycle:
+
+```bash
+sbx env plan ./sbxenv.yaml     # preview what it will do (changes nothing)
+sbx env run  ./sbxenv.yaml     # create the sandbox, load + run the sim, forward ports
+sbx env rm   ./sbxenv.yaml     # tear it all down
+```
+
+It mounts this repo, publishes both ports, and uses lifecycle hooks to build `microduck.tar`
+(if missing) and start the simulator inside the sandbox. `sbx env` is **experimental**, so
+the scripts above remain the supported path. Override the image with
+`sbx env run ./sbxenv.yaml --env-arg image=<your-image>`.
+
 ## Ports
 
 | Port    | What it is                              |
