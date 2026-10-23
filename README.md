@@ -1,5 +1,8 @@
 # 🦆 microduck-docker-sandbox
 
+<img width="1302" height="1208" alt="image" src="https://github.com/user-attachments/assets/8ba204b4-0069-4bd6-b10f-106ca225bd49" />
+
+
 **Run the [Microduck](https://pollen-robotics.com/microduck) robot simulator inside a
 [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) microVM - isolated, with the
 network switched off.**
