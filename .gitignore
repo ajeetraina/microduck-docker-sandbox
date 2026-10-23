@@ -1,0 +1,6 @@
+# sbx git worktrees (branch mode)
+.sbx/
+
+# air-gapped image export produced by scripts/export-image.sh
+microduck.tar
+*.tar
