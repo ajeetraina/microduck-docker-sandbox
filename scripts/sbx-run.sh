@@ -47,22 +47,46 @@ else
   sbx_exec docker pull "$IMAGE"
 fi
 
-# 4. run the simulator, detached, inside the sandbox
+# 4. run the simulator inside the sandbox.
+# Give the container a fixed name and replace any prior one, so re-running this
+# script is idempotent instead of colliding on the published ports.
+# sbx exec has no detached mode (-d is rejected), so detach the *container*
+# with "docker run -d" instead - the exec returns as soon as Docker backgrounds it.
+CONTAINER="${CONTAINER:-microduck-sim}"
+# Remove any prior container for this image (by fixed name or a leftover random
+# name from an earlier run) so the published ports are free.
+OLD="$(sbx_exec docker ps -aq -f "ancestor=$IMAGE" | tr '\n' ' ')"
+if [ -n "${OLD// /}" ]; then
+  echo "Replacing existing Microduck container(s) ..."
+  # shellcheck disable=SC2086
+  sbx_exec docker rm -f $OLD >/dev/null
+fi
 echo "Starting the simulator ..."
-sbx exec -d "$NAME" docker run --rm \
+sbx_exec docker run -d --rm --name "$CONTAINER" \
   -p "${VIEWER_PORT}:63317" -p "${LAB_PORT}:8788" "$IMAGE"
 
-# 5. forward both ports out of the VM to the host
+# 5. forward both ports out of the VM to the host.
+# Host->VM forwards persist at the sandbox level across container restarts, so
+# publish a port only if it is not already forwarded (re-publishing 409s).
 echo "Forwarding ports to the host ..."
-sbx ports "$NAME" --publish "${VIEWER_PORT}:${VIEWER_PORT}"
-sbx ports "$NAME" --publish "${LAB_PORT}:${LAB_PORT}"
+publish_port() {
+  local port="$1"
+  # "sbx ports" prints a table; HOST PORT is column 2. Skip if already forwarded.
+  if sbx ports "$NAME" 2>/dev/null | awk -v p="$port" 'NR>1 && $2==p{f=1} END{exit !f}'; then
+    echo "  port ${port} already forwarded - skipping."
+  else
+    sbx ports "$NAME" --publish "${port}:${port}"
+  fi
+}
+publish_port "$VIEWER_PORT"
+publish_port "$LAB_PORT"
 
 cat <<EOF
 
 🦆  Microduck is starting inside sandbox '$NAME'.
     Open  http://localhost:${VIEWER_PORT}
 
-    Logs:   sbx exec $NAME docker logs -f \$(sbx exec $NAME docker ps -q)
-    Stop:   sbx stop $NAME   (re-run this script's port step after restart)
+    Logs:   sbx exec $NAME docker logs -f $CONTAINER
+    Stop:   sbx exec $NAME docker rm -f $CONTAINER   (or: sbx stop $NAME)
     Remove: sbx rm $NAME
 EOF
