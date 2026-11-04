@@ -7,7 +7,7 @@
 [Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) microVM - isolated, with the
 network switched off.**
 
-This repo wraps the [`ajeetraina777/microduck-docker`](https://hub.docker.com/r/ajeetraina777/microduck-docker)
+This project is inspired from the original work at https://github.com/srayuth089/microduck-docker. It wraps the [`ajeetraina777/microduck-docker`](https://hub.docker.com/r/ajeetraina777/microduck-docker)
 image and runs it inside an `sbx` microVM instead of straight on your Docker host.
 
 > **Prerequisite:** the wrapper runs `ajeetraina777/microduck-docker:latest`. Publish that
